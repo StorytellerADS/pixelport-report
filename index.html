@@ -1,0 +1,1685 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PixelPort — Конкурентный анализ</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+  :root {
+    --primary: #9b82e8;
+    --primary-dark: #7a5fd6;
+    --primary-light: #c4b5f0;
+    --primary-bg: #f3f0fb;
+    --accent: #d4ff4c;
+    --accent-dark: #b8e030;
+    --dark: #1a1a2e;
+    --dark-soft: #2d2d44;
+    --gray-900: #111827;
+    --gray-700: #374151;
+    --gray-600: #4b5563;
+    --gray-500: #6b7280;
+    --gray-400: #9ca3af;
+    --gray-200: #e5e7eb;
+    --gray-100: #f3f4f6;
+    --gray-50: #f9fafb;
+    --white: #ffffff;
+    --danger: #ef4444;
+    --warning: #f59e0b;
+    --success: #10b981;
+    --info: #3b82f6;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    color: var(--gray-700);
+    background: var(--white);
+    line-height: 1.6;
+    font-size: 14px;
+  }
+
+  /* ===== COVER PAGE ===== */
+  .cover {
+    min-height: 100vh;
+    background: linear-gradient(135deg, var(--dark) 0%, #2a1f4e 40%, var(--primary-dark) 100%);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 60px 40px;
+    position: relative;
+    overflow: hidden;
+    page-break-after: always;
+  }
+
+  .cover::before {
+    content: '';
+    position: absolute;
+    top: -200px;
+    right: -200px;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(212, 255, 76, 0.15) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+
+  .cover::after {
+    content: '';
+    position: absolute;
+    bottom: -150px;
+    left: -150px;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(155, 130, 232, 0.2) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+
+  .cover-logo {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    margin-bottom: 60px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .cover-logo span {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    background: var(--accent);
+    border-radius: 2px;
+    margin-right: 12px;
+    vertical-align: middle;
+  }
+
+  .cover h1 {
+    font-size: 52px;
+    font-weight: 900;
+    color: var(--white);
+    line-height: 1.1;
+    margin-bottom: 24px;
+    position: relative;
+    z-index: 1;
+    max-width: 700px;
+  }
+
+  .cover h1 em {
+    font-style: normal;
+    color: var(--accent);
+  }
+
+  .cover-subtitle {
+    font-size: 20px;
+    color: var(--primary-light);
+    font-weight: 400;
+    margin-bottom: 80px;
+    position: relative;
+    z-index: 1;
+    max-width: 500px;
+  }
+
+  .cover-meta {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    gap: 40px;
+    color: var(--gray-400);
+    font-size: 13px;
+  }
+
+  .cover-meta div {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .cover-meta .label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--gray-500);
+  }
+
+  .cover-meta .value {
+    color: var(--gray-200);
+    font-weight: 500;
+  }
+
+  /* ===== TOC ===== */
+  .toc {
+    padding: 80px 60px;
+    max-width: 900px;
+    margin: 0 auto;
+    page-break-after: always;
+  }
+
+  .toc h2 {
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--dark);
+    margin-bottom: 40px;
+    padding-bottom: 16px;
+    border-bottom: 3px solid var(--accent);
+    display: inline-block;
+  }
+
+  .toc-list {
+    list-style: none;
+    counter-reset: toc;
+  }
+
+  .toc-list li {
+    counter-increment: toc;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--gray-200);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-size: 16px;
+    color: var(--gray-700);
+    font-weight: 500;
+  }
+
+  .toc-list li::before {
+    content: "0" counter(toc);
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--primary);
+    background: var(--primary-bg);
+    padding: 6px 12px;
+    border-radius: 8px;
+    min-width: 36px;
+    text-align: center;
+  }
+
+  /* ===== MAIN CONTENT ===== */
+  .page {
+    padding: 60px;
+    max-width: 900px;
+    margin: 0 auto;
+    page-break-after: always;
+  }
+
+  .section-number {
+    font-size: 12px;
+    font-weight: 800;
+    color: var(--primary);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .section-title {
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--dark);
+    margin-bottom: 32px;
+    line-height: 1.2;
+  }
+
+  .section-title::after {
+    content: '';
+    display: block;
+    width: 60px;
+    height: 4px;
+    background: linear-gradient(90deg, var(--primary), var(--accent));
+    border-radius: 2px;
+    margin-top: 12px;
+  }
+
+  /* Cards */
+  .card {
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    border-radius: 16px;
+    padding: 28px;
+    margin-bottom: 20px;
+    transition: box-shadow 0.2s;
+  }
+
+  .card:hover {
+    box-shadow: 0 4px 24px rgba(155, 130, 232, 0.1);
+  }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .card-icon {
+    width: 44px;
+    height: 44px;
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 800;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  .card-icon.accent {
+    background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+    color: var(--dark);
+  }
+
+  .card h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--dark);
+  }
+
+  .card h3 small {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--gray-500);
+    display: block;
+    margin-top: 2px;
+  }
+
+  .card p, .card li {
+    color: var(--gray-600);
+    font-size: 14px;
+    line-height: 1.7;
+  }
+
+  .card ul {
+    padding-left: 20px;
+    margin-top: 8px;
+  }
+
+  .card li {
+    margin-bottom: 4px;
+  }
+
+  /* Info Grid */
+  .info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .info-item {
+    background: var(--gray-50);
+    border-radius: 12px;
+    padding: 20px;
+  }
+
+  .info-item.highlight {
+    background: var(--primary-bg);
+    border: 1px solid var(--primary-light);
+  }
+
+  .info-item.accent-highlight {
+    background: #f5ffe0;
+    border: 1px solid #d4ff4c80;
+  }
+
+  .info-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--gray-500);
+    margin-bottom: 6px;
+  }
+
+  .info-value {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--dark);
+    line-height: 1.5;
+  }
+
+  .info-value.large {
+    font-size: 22px;
+    font-weight: 800;
+  }
+
+  /* Tables */
+  .table-wrapper {
+    overflow-x: auto;
+    margin: 24px 0;
+    border-radius: 16px;
+    border: 1px solid var(--gray-200);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12.5px;
+  }
+
+  thead {
+    background: linear-gradient(135deg, var(--dark) 0%, var(--dark-soft) 100%);
+  }
+
+  thead th {
+    padding: 14px 12px;
+    color: var(--white);
+    font-weight: 600;
+    text-align: left;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  thead th:first-child {
+    border-radius: 15px 0 0 0;
+  }
+
+  thead th:last-child {
+    border-radius: 0 15px 0 0;
+  }
+
+  thead th.highlight-col {
+    background: var(--primary-dark);
+    color: var(--accent);
+  }
+
+  tbody td {
+    padding: 12px;
+    border-bottom: 1px solid var(--gray-100);
+    vertical-align: top;
+  }
+
+  tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  tbody tr:hover {
+    background: var(--gray-50);
+  }
+
+  td.highlight-col {
+    background: rgba(155, 130, 232, 0.06);
+    font-weight: 600;
+  }
+
+  td:first-child {
+    font-weight: 600;
+    color: var(--dark);
+    white-space: nowrap;
+  }
+
+  /* Tags / Badges */
+  .badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  .badge-direct { background: #fee2e2; color: #dc2626; }
+  .badge-indirect { background: #fef3c7; color: #d97706; }
+  .badge-potential { background: #dbeafe; color: #2563eb; }
+  .badge-yes { background: #d1fae5; color: #059669; }
+  .badge-no { background: var(--gray-100); color: var(--gray-500); }
+  .badge-mixed { background: #fef3c7; color: #d97706; }
+  .badge-positive { background: #d1fae5; color: #059669; }
+
+  /* Quote / Callout */
+  .callout {
+    background: linear-gradient(135deg, var(--primary-bg), #ede9fe);
+    border-left: 4px solid var(--primary);
+    border-radius: 0 12px 12px 0;
+    padding: 20px 24px;
+    margin: 24px 0;
+  }
+
+  .callout.accent {
+    background: linear-gradient(135deg, #f5ffe0, #ecfccb);
+    border-left-color: var(--accent-dark);
+  }
+
+  .callout.warning {
+    background: linear-gradient(135deg, #fff7ed, #fef3c7);
+    border-left-color: var(--warning);
+  }
+
+  .callout.danger {
+    background: linear-gradient(135deg, #fef2f2, #fee2e2);
+    border-left-color: var(--danger);
+  }
+
+  .callout-title {
+    font-weight: 700;
+    color: var(--dark);
+    margin-bottom: 6px;
+    font-size: 14px;
+  }
+
+  .callout p {
+    font-size: 14px;
+    color: var(--gray-600);
+  }
+
+  /* Stats row */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin: 24px 0;
+  }
+
+  .stat-card {
+    text-align: center;
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    border-radius: 16px;
+    padding: 24px 16px;
+  }
+
+  .stat-number {
+    font-size: 28px;
+    font-weight: 900;
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .stat-label {
+    font-size: 11px;
+    color: var(--gray-500);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 4px;
+    font-weight: 600;
+  }
+
+  /* Competitor card */
+  .competitor-card {
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    border-radius: 16px;
+    padding: 28px;
+    margin-bottom: 20px;
+    page-break-inside: avoid;
+  }
+
+  .competitor-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+  }
+
+  .competitor-name {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--dark);
+  }
+
+  .competitor-url {
+    font-size: 12px;
+    color: var(--primary);
+    font-weight: 500;
+  }
+
+  .competitor-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .competitor-field {
+    background: var(--gray-50);
+    border-radius: 10px;
+    padding: 14px;
+  }
+
+  .competitor-field.full-width {
+    grid-column: 1 / -1;
+  }
+
+  .field-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--gray-500);
+    margin-bottom: 6px;
+  }
+
+  .field-value {
+    font-size: 13px;
+    color: var(--gray-700);
+    line-height: 1.6;
+  }
+
+  /* Review blocks */
+  .review-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 16px 0;
+  }
+
+  .review-block {
+    border-radius: 12px;
+    padding: 18px;
+  }
+
+  .review-block.positive {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+  }
+
+  .review-block.negative {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+  }
+
+  .review-block h4 {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+  }
+
+  .review-block.positive h4 { color: #16a34a; }
+  .review-block.negative h4 { color: #dc2626; }
+
+  .review-block ul {
+    list-style: none;
+    padding: 0;
+  }
+
+  .review-block li {
+    font-size: 12.5px;
+    color: var(--gray-600);
+    padding: 4px 0;
+    padding-left: 16px;
+    position: relative;
+  }
+
+  .review-block.positive li::before {
+    content: '+';
+    position: absolute;
+    left: 0;
+    color: #16a34a;
+    font-weight: 700;
+  }
+
+  .review-block.negative li::before {
+    content: '−';
+    position: absolute;
+    left: 0;
+    color: #dc2626;
+    font-weight: 700;
+  }
+
+  /* Recommendation cards */
+  .rec-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 16px 0;
+  }
+
+  .rec-card {
+    border-radius: 16px;
+    padding: 24px;
+    page-break-inside: avoid;
+  }
+
+  .rec-card.opportunities {
+    background: linear-gradient(135deg, #f0fdf4, #ecfccb);
+    border: 1px solid #bbf7d0;
+  }
+
+  .rec-card.threats {
+    background: linear-gradient(135deg, #fef2f2, #fff7ed);
+    border: 1px solid #fecaca;
+  }
+
+  .rec-card.uncovered {
+    background: linear-gradient(135deg, var(--primary-bg), #ede9fe);
+    border: 1px solid var(--primary-light);
+  }
+
+  .rec-card.weakness {
+    background: linear-gradient(135deg, #fff7ed, #fef3c7);
+    border: 1px solid #fed7aa;
+  }
+
+  .rec-card h3 {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--dark);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .rec-card .icon-circle {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+
+  .rec-card.opportunities .icon-circle { background: #dcfce7; }
+  .rec-card.threats .icon-circle { background: #fee2e2; }
+  .rec-card.uncovered .icon-circle { background: #e9e5f5; }
+  .rec-card.weakness .icon-circle { background: #fed7aa; }
+
+  .rec-card ul {
+    list-style: none;
+    padding: 0;
+  }
+
+  .rec-card li {
+    font-size: 13px;
+    color: var(--gray-600);
+    padding: 5px 0;
+    padding-left: 14px;
+    position: relative;
+    line-height: 1.5;
+  }
+
+  .rec-card li::before {
+    content: '>';
+    position: absolute;
+    left: 0;
+    color: var(--primary);
+    font-weight: 700;
+  }
+
+  /* Pricing table */
+  .pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin: 24px 0;
+  }
+
+  .pricing-card {
+    border: 1px solid var(--gray-200);
+    border-radius: 16px;
+    padding: 24px;
+    text-align: center;
+    page-break-inside: avoid;
+  }
+
+  .pricing-card.featured {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 1px var(--primary), 0 8px 30px rgba(155, 130, 232, 0.15);
+    position: relative;
+  }
+
+  .pricing-card.featured::before {
+    content: 'Рекомендуемый';
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--primary);
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 12px;
+    border-radius: 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .pricing-name {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--dark);
+    margin-bottom: 8px;
+  }
+
+  .pricing-price {
+    font-size: 28px;
+    font-weight: 900;
+    color: var(--primary);
+    margin-bottom: 4px;
+  }
+
+  .pricing-price small {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--gray-500);
+  }
+
+  .pricing-intl {
+    font-size: 12px;
+    color: var(--gray-400);
+    margin-bottom: 16px;
+  }
+
+  .pricing-features {
+    list-style: none;
+    padding: 0;
+    text-align: left;
+  }
+
+  .pricing-features li {
+    font-size: 12px;
+    color: var(--gray-600);
+    padding: 6px 0;
+    border-bottom: 1px solid var(--gray-100);
+    padding-left: 18px;
+    position: relative;
+  }
+
+  .pricing-features li::before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    color: var(--success);
+    font-weight: 700;
+  }
+
+  /* Positioning block */
+  .positioning-block {
+    background: linear-gradient(135deg, var(--dark) 0%, #2a1f4e 100%);
+    border-radius: 20px;
+    padding: 36px;
+    margin: 24px 0;
+    color: white;
+  }
+
+  .positioning-block h3 {
+    color: var(--accent);
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 12px;
+  }
+
+  .positioning-block .tagline {
+    font-size: 24px;
+    font-weight: 800;
+    line-height: 1.3;
+    margin-bottom: 16px;
+    color: var(--white);
+  }
+
+  .positioning-block .tagline em {
+    font-style: normal;
+    color: var(--accent);
+  }
+
+  .positioning-block p {
+    color: var(--gray-400);
+    font-size: 14px;
+    line-height: 1.7;
+  }
+
+  /* Divider */
+  .divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gray-200), transparent);
+    margin: 32px 0;
+  }
+
+  /* Footer */
+  .page-footer {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--gray-400);
+    font-size: 11px;
+    border-top: 1px solid var(--gray-200);
+    margin-top: 40px;
+  }
+
+  .page-footer strong {
+    color: var(--primary);
+  }
+
+  /* Print Styles */
+  @media print {
+    body { font-size: 11px; }
+    .cover { min-height: 100vh; }
+    .page { padding: 40px 50px; }
+    .card:hover { box-shadow: none; }
+    .competitor-card, .rec-card, .pricing-card { break-inside: avoid; }
+
+    @page {
+      size: A4;
+      margin: 0;
+    }
+  }
+
+  /* Small text helpers */
+  .text-sm { font-size: 13px; }
+  .text-xs { font-size: 11px; }
+  .text-muted { color: var(--gray-500); }
+  .text-primary { color: var(--primary); }
+  .text-accent { color: var(--accent-dark); }
+  .mt-16 { margin-top: 16px; }
+  .mt-24 { margin-top: 24px; }
+  .mb-16 { margin-bottom: 16px; }
+  .mb-24 { margin-bottom: 24px; }
+  .font-bold { font-weight: 700; }
+</style>
+</head>
+<body>
+
+<!-- ===================== COVER ===================== -->
+<div class="cover">
+  <div class="cover-logo"><span></span>PixelPort</div>
+  <h1>Конкурентный <em>анализ</em> рынка</h1>
+  <p class="cover-subtitle">Исследование конкурентной среды, позиционирования и рекомендации по стратегии</p>
+  <div class="cover-meta">
+    <div>
+      <span class="label">Продукт</span>
+      <span class="value">PixelPort (pxlport.ru)</span>
+    </div>
+    <div>
+      <span class="label">Рынок</span>
+      <span class="value">Россия + масштабирование</span>
+    </div>
+    <div>
+      <span class="label">Дата</span>
+      <span class="value">Март 2026</span>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== TOC ===================== -->
+<div class="toc">
+  <h2>Содержание</h2>
+  <ol class="toc-list">
+    <li>Анализ продукта PixelPort</li>
+    <li>Позиционирование</li>
+    <li>Карта конкурентов</li>
+    <li>Глубокий анализ конкурентов</li>
+    <li>Отзывы и восприятие рынком</li>
+    <li>Сравнительная матрица</li>
+    <li>Выводы и рекомендации</li>
+  </ol>
+</div>
+
+<!-- ===================== SECTION 1 ===================== -->
+<div class="page">
+  <div class="section-number">Раздел 01</div>
+  <div class="section-title">Анализ продукта PixelPort</div>
+
+  <div class="info-grid">
+    <div class="info-item highlight">
+      <div class="info-label">Название</div>
+      <div class="info-value large">PixelPort</div>
+    </div>
+    <div class="info-item highlight">
+      <div class="info-label">Домен</div>
+      <div class="info-value large">pxlport.ru</div>
+    </div>
+    <div class="info-item">
+      <div class="info-label">Тип продукта</div>
+      <div class="info-value">Конструктор сайтов-визиток и портфолио с встроенной генерацией QR-кодов</div>
+    </div>
+    <div class="info-item">
+      <div class="info-label">Главный месседж</div>
+      <div class="info-value">"PixelPort — ваш ключ к быстрому созданию сайта!"</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon">TA</div>
+      <h3>Целевая аудитория <small>Предположительные сегменты</small></h3>
+    </div>
+    <ul>
+      <li>Фрилансеры (дизайнеры, фотографы, разработчики)</li>
+      <li>Малый бизнес и самозанятые (мастера, репетиторы, консультанты)</li>
+      <li>Специалисты, которым нужна онлайн-визитка с QR-кодом для нетворкинга</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon accent">J</div>
+      <h3>Работы (Jobs-to-be-Done)</h3>
+    </div>
+    <ul>
+      <li><strong>Job #1:</strong> Быстро создать персональный сайт/визитку без навыков программирования</li>
+      <li><strong>Job #2:</strong> Сгенерировать QR-код для мгновенного обмена контактами или ссылкой на сайт</li>
+      <li><strong>Job #3:</strong> Отслеживать статистику сканирований и посещений</li>
+      <li><strong>Job #4:</strong> Управлять несколькими сайтами из единого дашборда</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon">F</div>
+      <h3>Ключевые фичи</h3>
+    </div>
+    <ul>
+      <li>Создание сайта за 10 минут</li>
+      <li>Встроенная генерация QR-кодов для различных целей</li>
+      <li>Персональный дашборд с аналитикой (сканирования, активные страницы)</li>
+      <li>Управление несколькими сайтами из одного кабинета</li>
+    </ul>
+  </div>
+
+  <div class="callout accent">
+    <div class="callout-title">Ценностное предложение</div>
+    <p>Скорость создания (10 минут) + встроенные QR-коды + аналитика — уникальная связка, которую ни один конкурент не предлагает в виде единого решения.</p>
+  </div>
+</div>
+
+<!-- ===================== SECTION 2 ===================== -->
+<div class="page">
+  <div class="section-number">Раздел 02</div>
+  <div class="section-title">Позиционирование</div>
+
+  <div class="info-grid">
+    <div class="info-item">
+      <div class="info-label">Главный месседж</div>
+      <div class="info-value">"PixelPort — ваш ключ к быстрому созданию сайта!"</div>
+    </div>
+    <div class="info-item">
+      <div class="info-label">УТП</div>
+      <div class="info-value">Скорость (10 мин) + встроенные QR-коды</div>
+    </div>
+    <div class="info-item highlight">
+      <div class="info-label">Целевая аудитория</div>
+      <div class="info-value">Не конкретизирована — позиционирование широкое</div>
+    </div>
+    <div class="info-item highlight">
+      <div class="info-label">Job-формулировка</div>
+      <div class="info-value">"Когда мне нужно заявить о себе в интернете, я хочу создать сайт за 10 минут, чтобы делиться им через QR-код"</div>
+    </div>
+  </div>
+
+  <div class="callout warning">
+    <div class="callout-title">Проблема позиционирования</div>
+    <p>Текущий месседж слишком общий. Непонятно — это конструктор портфолио? Визиток? Лендингов? Всего сразу? Сайт не сегментирует аудиторию и не объясняет, для кого именно продукт. «Быстрое создание сайта» — это обещание каждого конструктора. Уникальность QR-кодов теряется в общем месседже.</p>
+  </div>
+</div>
+
+<!-- ===================== SECTION 3 ===================== -->
+<div class="page">
+  <div class="section-number">Раздел 03</div>
+  <div class="section-title">Карта конкурентов</div>
+
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-number">8</div>
+      <div class="stat-label">Конкурентов</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number">3</div>
+      <div class="stat-label">Прямых</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number">4</div>
+      <div class="stat-label">Косвенных</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number">3+</div>
+      <div class="stat-label">Потенциальных</div>
+    </div>
+  </div>
+
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Конкурент</th>
+          <th>Сайт</th>
+          <th>Тип</th>
+          <th>Ключевой Job</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1</td>
+          <td>MyQRcards</td>
+          <td>myqrcards.com</td>
+          <td><span class="badge badge-direct">Прямой</span></td>
+          <td>Электронная визитка + QR/NFC</td>
+        </tr>
+        <tr>
+          <td>2</td>
+          <td>Taplink</td>
+          <td>taplink.ru</td>
+          <td><span class="badge badge-direct">Прямой</span></td>
+          <td>Мультиссылка для соцсетей</td>
+        </tr>
+        <tr>
+          <td>3</td>
+          <td>Portfolios.ru</td>
+          <td>portfolios.ru</td>
+          <td><span class="badge badge-direct">Прямой</span></td>
+          <td>Портфолио для творческих</td>
+        </tr>
+        <tr>
+          <td>4</td>
+          <td>Wfolio</td>
+          <td>wfolio.com</td>
+          <td><span class="badge badge-indirect">Косвенный</span></td>
+          <td>Портфолио для фотографов</td>
+        </tr>
+        <tr>
+          <td>5</td>
+          <td>Taptop</td>
+          <td>taptop.pro</td>
+          <td><span class="badge badge-indirect">Косвенный</span></td>
+          <td>No-code конструктор</td>
+        </tr>
+        <tr>
+          <td>6</td>
+          <td>Tilda</td>
+          <td>tilda.cc</td>
+          <td><span class="badge badge-indirect">Косвенный</span></td>
+          <td>Универсальный конструктор</td>
+        </tr>
+        <tr>
+          <td>7</td>
+          <td>Readymag</td>
+          <td>readymag.com</td>
+          <td><span class="badge badge-indirect">Косвенный</span></td>
+          <td>Дизайнерский конструктор</td>
+        </tr>
+        <tr>
+          <td>8</td>
+          <td>Dprofile</td>
+          <td>dprofile.ru</td>
+          <td><span class="badge badge-indirect">Косвенный</span></td>
+          <td>Платформа дизайнеров</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout">
+    <div class="callout-title">Потенциальные конкуренты</div>
+    <p><strong>Яндекс</strong> — может запустить конструктор визиток в рамках экосистемы. <strong>VK</strong> — расширение VK Pages. <strong>Сбер</strong> — в рамках экосистемы для бизнеса. <strong>Canva</strong> — уже делает портфолио, может добавить QR + хостинг.</p>
+  </div>
+</div>
+
+<!-- ===================== SECTION 4 ===================== -->
+<div class="page">
+  <div class="section-number">Раздел 04</div>
+  <div class="section-title">Глубокий анализ конкурентов</div>
+
+  <!-- MyQRcards -->
+  <div class="competitor-card">
+    <div class="competitor-header">
+      <div>
+        <div class="competitor-name">MyQRcards</div>
+        <div class="competitor-url">myqrcards.com &nbsp; <span class="badge badge-direct">Прямой</span></div>
+      </div>
+    </div>
+    <div class="competitor-grid">
+      <div class="competitor-field">
+        <div class="field-label">Месседж</div>
+        <div class="field-value">Создать электронные визитки с мобильным приложением</div>
+      </div>
+      <div class="competitor-field">
+        <div class="field-label">ЦА</div>
+        <div class="field-value">Бизнес, предприниматели, корпоративные клиенты</div>
+      </div>
+      <div class="competitor-field">
+        <div class="field-label">Job</div>
+        <div class="field-value">"Когда я встречаюсь с клиентом, хочу мгновенно поделиться контактами, чтобы не терять связи"</div>
+      </div>
+      <div class="competitor-field">
+        <div class="field-label">УТП</div>
+        <div class="field-value">Мультиканальность: QR + NFC + SMS + ссылка + Apple Wallet</div>
+      </div>
+      <div class="competitor-field">
+        <div class="field-label">Ключевые фичи</div>
+        <div class="field-value">Мобильное приложение, веб-кабинет, NFC-теги, корпоративные решения, офлайн QR-код, сертификат ФЗ-152</div>
+      </div>
+      <div class="competitor-field">
+        <div class="field-label">Цена</div>
+        <div class="field-value">Бесплатная базовая версия + платные тарифы. Рейтинг 4.1 в RuStore</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Taplink -->
+  <div class="competitor-card">
+    <div class="competitor-header">
+      <div>
+        <div class="competitor-name">Taplink</div>
+        <div class="competitor-url">taplink.ru &nbsp; <span class="badge badge-direct">Прямой</span></div>
+      </div>
+    </div>
+    <div class="competitor-grid">
+      <div class="competitor-field">
+        <div class="field-label">Месседж</div>
+        <div class="field-value">Мультиссылка и мини-лендинг для Instagram</div>
+      </div>
+      <div class="competitor-field">
+        <div class="field-label">ЦА</div>
+        <div class="field-value">Блогеры, бизнес в Instagram, самозанятые</div>
+      </div>
+      <div class="competitor-field">
+        <div class="field-label">Job</div>
+        <div class="field-value">"Когда я веду Instagram, хочу дать подписчикам одну ссылку на всё, чтобы не терять трафик"</div>
+      </div>
+      <div class="competitor-field">
+        <div class="field-label">УТП</div>
+        <div class="field-value">Глубокая интеграция с Instagram + приём платежей</div>
+      </div>
+      <div class="competitor-field">
+        <div class="field-label">Ключевые фичи</div>
+        <div class="field-value">Мультиссылка, мини-магазин, приём платежей, мессенджеры, аналитика</div>
+      </div>
+      <div class="competitor-field">
+        <div class="field-label">Тарифы</div>
+        <div class="field-value">Basic — бесплатно. Pro — 90 ₽/мес. Business — 290 ₽/мес. Скидки: 30% (6 мес), 50% (год)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Portfolios.ru -->
+  <div class="competitor-card">
+    <div class="competitor-header">
+      <div>
+        <div class="competitor-name">Portfolios.ru</div>
+        <div class="competitor-url">portfolios.ru &nbsp; <span class="badge badge-direct">Прямой</span></div>
+      </div>
+    </div>
+    <div class="competitor-grid">
+      <div class="competitor-field">
+        <div class="field-label">Месседж</div>
+        <div class="field-value">"Вы творческий человек и вам есть что показать миру?"</div>
+      </div>
+      <div class="competitor-field">
+        <div class="field-label">ЦА</div>
+        <div class="field-value">Фотографы, дизайнеры, иллюстраторы, видеографы</div>
+      </div>
+      <div class="competitor-field">
+        <div class="field-label">Job</div>
+        <div class="field-value">"Когда я ищу заказчиков, хочу красиво показать свои работы, чтобы получить клиентов"</div>
+      </div>
+      <div class="competitor-field">
+        <div class="field-label">УТП</div>
+        <div class="field-value">Без программирования, без хостинга, без рекламы. 14 лет на рынке</div>
+      </div>
+      <div class="competitor-field">
+        <div class="field-label">Ключевые фичи</div>
+        <div class="field-value">Шаблоны, свой домен + SSL, безлимитный хостинг, блог с Disqus, адаптивный дизайн</div>
+      </div>
+      <div class="competitor-field">
+        <div class="field-label">Тарифы</div>
+        <div class="field-value">Бесплатно (до 15 изображений). Платный — от 120 ₽/мес. 78 294 пользователя</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- More competitors -->
+<div class="page">
+  <div class="section-number">Раздел 04 (продолжение)</div>
+  <div class="section-title">Глубокий анализ: косвенные конкуренты</div>
+
+  <!-- Wfolio -->
+  <div class="competitor-card">
+    <div class="competitor-header">
+      <div>
+        <div class="competitor-name">Wfolio</div>
+        <div class="competitor-url">wfolio.com &nbsp; <span class="badge badge-indirect">Косвенный</span></div>
+      </div>
+    </div>
+    <div class="competitor-grid">
+      <div class="competitor-field">
+        <div class="field-label">Месседж</div>
+        <div class="field-value">"Веб-сайт и фотогалерея для умных фотографов"</div>
+      </div>
+      <div class="competitor-field">
+        <div class="field-label">ЦА</div>
+        <div class="field-value">Профессиональные фотографы</div>
+      </div>
+      <div class="competitor-field">
+        <div class="field-label">УТП</div>
+        <div class="field-value">Облачное хранилище + портфолио + маркетинг «из уст в уста»</div>
+      </div>
+      <div class="competitor-field">
+        <div class="field-label">Тарифы</div>
+        <div class="field-value">299 ₽/мес или 2 990 ₽/год. Партнёрство с Яндекс 360</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Taptop -->
+  <div class="competitor-card">
+    <div class="competitor-header">
+      <div>
+        <div class="competitor-name">Taptop</div>
+        <div class="competitor-url">taptop.pro &nbsp; <span class="badge badge-indirect">Косвенный</span></div>
+      </div>
+    </div>
+    <div class="competitor-grid">
+      <div class="competitor-field">
+        <div class="field-label">Месседж</div>
+        <div class="field-value">"Каждый пиксель на месте, чистый код"</div>
+      </div>
+      <div class="competitor-field">
+        <div class="field-label">ЦА</div>
+        <div class="field-value">Веб-дизайнеры, фрилансеры, студии</div>
+      </div>
+      <div class="competitor-field">
+        <div class="field-label">УТП</div>
+        <div class="field-value">Визуальный редактор с экспортом чистого кода. Партнёры: АльфаБанк, Яндекс, ВК</div>
+      </div>
+      <div class="competitor-field">
+        <div class="field-label">Тарифы</div>
+        <div class="field-value">Бесплатно (на поддомене) + Team и Business тарифы</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tilda -->
+  <div class="competitor-card">
+    <div class="competitor-header">
+      <div>
+        <div class="competitor-name">Tilda</div>
+        <div class="competitor-url">tilda.cc &nbsp; <span class="badge badge-indirect">Косвенный</span></div>
+      </div>
+    </div>
+    <div class="competitor-grid">
+      <div class="competitor-field">
+        <div class="field-label">Месседж</div>
+        <div class="field-value">"Создавайте красивые сайты без кода"</div>
+      </div>
+      <div class="competitor-field">
+        <div class="field-label">ЦА</div>
+        <div class="field-value">Бизнес, маркетологи, дизайнеры, фрилансеры</div>
+      </div>
+      <div class="competitor-field">
+        <div class="field-label">УТП</div>
+        <div class="field-value">Блочный редактор + огромная экосистема шаблонов и интеграций</div>
+      </div>
+      <div class="competitor-field">
+        <div class="field-label">Тарифы</div>
+        <div class="field-value">Free (1 сайт, 50 стр). Personal — 750 ₽/мес. Business — 950 ₽/мес. Скидка −30% за год</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Readymag -->
+  <div class="competitor-card">
+    <div class="competitor-header">
+      <div>
+        <div class="competitor-name">Readymag</div>
+        <div class="competitor-url">readymag.com &nbsp; <span class="badge badge-indirect">Косвенный</span></div>
+      </div>
+    </div>
+    <div class="competitor-grid">
+      <div class="competitor-field">
+        <div class="field-label">Месседж</div>
+        <div class="field-value">"Design tool for creative professionals"</div>
+      </div>
+      <div class="competitor-field">
+        <div class="field-label">ЦА</div>
+        <div class="field-value">Дизайнеры, креативные агентства</div>
+      </div>
+      <div class="competitor-field">
+        <div class="field-label">УТП</div>
+        <div class="field-value">Свобода дизайна без ограничений шаблонов</div>
+      </div>
+      <div class="competitor-field">
+        <div class="field-label">Тарифы</div>
+        <div class="field-value">Free (10 проектов, 100МБ). Personal — $12/мес. Pro — $24/мес. Проблемы с оплатой из РФ</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 5 ===================== -->
+<div class="page">
+  <div class="section-number">Раздел 05</div>
+  <div class="section-title">Отзывы и восприятие рынком</div>
+
+  <div class="callout">
+    <div class="callout-title">PixelPort (pxlport.ru)</div>
+    <p>Отзывов в открытых источниках не найдено. Продукт на ранней стадии — это возможность формировать восприятие с нуля.</p>
+  </div>
+
+  <!-- Taplink reviews -->
+  <h3 style="margin: 24px 0 12px; font-size: 16px; color: var(--dark);">Taplink</h3>
+  <div class="review-section">
+    <div class="review-block positive">
+      <h4>Хвалят</h4>
+      <ul>
+        <li>Простой интерфейс, быстрая сборка</li>
+        <li>Демократичные цены (от 90 ₽)</li>
+        <li>Хорошо для продаж через Instagram</li>
+      </ul>
+    </div>
+    <div class="review-block negative">
+      <h4>Жалуются</h4>
+      <ul>
+        <li>Техподдержка игнорирует нестандартные проблемы</li>
+        <li>Нет интеграций с ТК (СДЭК, Boxberry)</li>
+        <li>Потеря доступа к оплаченным материалам</li>
+        <li>Сложно разобраться во всех возможностях</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- MyQRcards reviews -->
+  <h3 style="margin: 24px 0 12px; font-size: 16px; color: var(--dark);">MyQRcards</h3>
+  <div class="review-section">
+    <div class="review-block positive">
+      <h4>Хвалят</h4>
+      <ul>
+        <li>Быстрое создание визитки + QR</li>
+        <li>Мобильное приложение, офлайн QR</li>
+        <li>Сертификат ФЗ-152</li>
+      </ul>
+    </div>
+    <div class="review-block negative">
+      <h4>Жалуются</h4>
+      <ul>
+        <li>QR-код не распознаётся из-за логотипа</li>
+        <li>Платные функции не работают после оплаты</li>
+        <li>Ограниченный функционал сайта-визитки</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Tilda reviews -->
+  <h3 style="margin: 24px 0 12px; font-size: 16px; color: var(--dark);">Tilda</h3>
+  <div class="review-section">
+    <div class="review-block positive">
+      <h4>Хвалят</h4>
+      <ul>
+        <li>Огромная библиотека блоков и шаблонов</li>
+        <li>Красивый результат без дизайнера</li>
+        <li>Оплата в рублях с российских карт</li>
+      </ul>
+    </div>
+    <div class="review-block negative">
+      <h4>Жалуются</h4>
+      <ul>
+        <li>Плохо для SEO-продвижения</li>
+        <li>Поддержка только по email, ответ 1,5ч–сутки</li>
+        <li>Ограниченное хранилище, нельзя расширить</li>
+        <li>Дорого для простой визитки (от 750 ₽)</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Wfolio reviews -->
+  <h3 style="margin: 24px 0 12px; font-size: 16px; color: var(--dark);">Wfolio</h3>
+  <div class="review-section">
+    <div class="review-block positive">
+      <h4>Хвалят</h4>
+      <ul>
+        <li>Удобный интерфейс, всё понятно</li>
+        <li>Отзывчивая поддержка</li>
+        <li>Постоянные обновления по запросам</li>
+      </ul>
+    </div>
+    <div class="review-block negative">
+      <h4>Жалуются</h4>
+      <ul>
+        <li>Только для фотографов (узкая ниша)</li>
+        <li>Ограниченная кастомизация</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Portfolios.ru reviews -->
+  <h3 style="margin: 24px 0 12px; font-size: 16px; color: var(--dark);">Portfolios.ru</h3>
+  <div class="review-section">
+    <div class="review-block positive">
+      <h4>Хвалят</h4>
+      <ul>
+        <li>Бесплатная базовая версия</li>
+        <li>Лаконичный дизайн</li>
+        <li>14 лет стабильной работы</li>
+      </ul>
+    </div>
+    <div class="review-block negative">
+      <h4>Жалуются</h4>
+      <ul>
+        <li>Только 15 изображений бесплатно</li>
+        <li>Устаревший дизайн шаблонов</li>
+        <li>Мало кастомизации</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 6 ===================== -->
+<div class="page">
+  <div class="section-number">Раздел 06</div>
+  <div class="section-title">Сравнительная матрица</div>
+
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>Критерий</th>
+          <th class="highlight-col">PixelPort</th>
+          <th>MyQRcards</th>
+          <th>Taplink</th>
+          <th>Portfolios.ru</th>
+          <th>Wfolio</th>
+          <th>Tilda</th>
+          <th>Readymag</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Главная Job</td>
+          <td class="highlight-col">Сайт + QR</td>
+          <td>Визитка + QR</td>
+          <td>Мультиссылка</td>
+          <td>Портфолио</td>
+          <td>Портфолио фото</td>
+          <td>Универсал</td>
+          <td>Дизайн-сайт</td>
+        </tr>
+        <tr>
+          <td>Мин. цена</td>
+          <td class="highlight-col">Бесплатно</td>
+          <td>Бесплатно</td>
+          <td>90 ₽</td>
+          <td>120 ₽</td>
+          <td>299 ₽</td>
+          <td>750 ₽</td>
+          <td>$12</td>
+        </tr>
+        <tr>
+          <td>Целевой сегмент</td>
+          <td class="highlight-col">Широкий</td>
+          <td>Бизнес</td>
+          <td>Instagram</td>
+          <td>Творческие</td>
+          <td>Фотографы</td>
+          <td>Все</td>
+          <td>Дизайнеры</td>
+        </tr>
+        <tr>
+          <td>УТП</td>
+          <td class="highlight-col">Скорость + QR</td>
+          <td>QR/NFC/SMS</td>
+          <td>Instagram</td>
+          <td>14 лет, бесплатно</td>
+          <td>Облако фото</td>
+          <td>Экосистема</td>
+          <td>Свобода дизайна</td>
+        </tr>
+        <tr>
+          <td>QR-коды</td>
+          <td class="highlight-col"><span class="badge badge-yes">Да</span></td>
+          <td><span class="badge badge-yes">Да</span></td>
+          <td><span class="badge badge-no">Нет</span></td>
+          <td><span class="badge badge-no">Нет</span></td>
+          <td><span class="badge badge-no">Нет</span></td>
+          <td><span class="badge badge-no">Нет</span></td>
+          <td><span class="badge badge-no">Нет</span></td>
+        </tr>
+        <tr>
+          <td>Аналитика</td>
+          <td class="highlight-col"><span class="badge badge-yes">Да</span></td>
+          <td>Частично</td>
+          <td><span class="badge badge-yes">Да</span></td>
+          <td><span class="badge badge-no">Нет</span></td>
+          <td><span class="badge badge-no">Нет</span></td>
+          <td><span class="badge badge-yes">Да</span></td>
+          <td>Pro</td>
+        </tr>
+        <tr>
+          <td>Моб. приложение</td>
+          <td class="highlight-col"><span class="badge badge-no">Нет</span></td>
+          <td><span class="badge badge-yes">Да</span></td>
+          <td><span class="badge badge-no">Нет</span></td>
+          <td><span class="badge badge-no">Нет</span></td>
+          <td><span class="badge badge-no">Нет</span></td>
+          <td><span class="badge badge-no">Нет</span></td>
+          <td><span class="badge badge-no">Нет</span></td>
+        </tr>
+        <tr>
+          <td>Оплата в ₽</td>
+          <td class="highlight-col"><span class="badge badge-yes">Да</span></td>
+          <td><span class="badge badge-yes">Да</span></td>
+          <td><span class="badge badge-yes">Да</span></td>
+          <td><span class="badge badge-yes">Да</span></td>
+          <td><span class="badge badge-yes">Да</span></td>
+          <td><span class="badge badge-yes">Да</span></td>
+          <td><span class="badge badge-mixed">Сложно</span></td>
+        </tr>
+        <tr>
+          <td>Отзывы</td>
+          <td class="highlight-col">—</td>
+          <td><span class="badge badge-mixed">Смешан.</span></td>
+          <td><span class="badge badge-mixed">Смешан.</span></td>
+          <td><span class="badge badge-positive">Позитив.</span></td>
+          <td><span class="badge badge-positive">Позитив.</span></td>
+          <td><span class="badge badge-mixed">Смешан.</span></td>
+          <td><span class="badge badge-positive">Позитив.</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout accent">
+    <div class="callout-title">Ключевой вывод из матрицы</div>
+    <p>PixelPort — единственный продукт, который объединяет конструктор сайтов и QR-коды как ядро продукта (а не дополнительную фичу). MyQRcards даёт QR, но без полноценного конструктора сайтов. Остальные конструкторы дают сайт, но без QR.</p>
+  </div>
+</div>
+
+<!-- ===================== SECTION 7 ===================== -->
+<div class="page">
+  <div class="section-number">Раздел 07</div>
+  <div class="section-title">Выводы и рекомендации</div>
+
+  <div class="rec-grid">
+    <div class="rec-card uncovered">
+      <h3><span class="icon-circle">1</span> Незакрытые работы</h3>
+      <ul>
+        <li><strong>«Сайт + QR + аналитика за 10 минут»</strong> — ни один конкурент не объединяет всё в одно решение</li>
+        <li>Мультиязычные визитки для международного нетворкинга</li>
+        <li>QR-визитка для офлайн-мероприятий (конференции, выставки) с полноценным сайтом за ней</li>
+        <li>Аналитика воронки: QR-сканирование → просмотр сайта → контакт</li>
+      </ul>
+    </div>
+
+    <div class="rec-card weakness">
+      <h3><span class="icon-circle">2</span> Общие слабости</h3>
+      <ul>
+        <li>Плохая техподдержка у Taplink и Tilda</li>
+        <li>Устаревший дизайн у Portfolios.ru</li>
+        <li>Узость ниши: Wfolio — только фото, Taplink — только Instagram</li>
+        <li>Проблемы с оплатой из РФ у Readymag</li>
+        <li>Избыточная сложность для простых задач у Tilda и Readymag</li>
+      </ul>
+    </div>
+
+    <div class="rec-card opportunities" style="grid-column: 1 / -1;">
+      <h3><span class="icon-circle">3</span> Возможности: QR-first конструктор</h3>
+      <p style="font-size: 14px; color: var(--gray-700); margin-bottom: 16px; line-height: 1.7;">
+        Ключевая стратегия — строить продукт вокруг QR-кода как ядра, а не как дополнительной фичи. Это означает, что каждый пользовательский сценарий начинается и заканчивается QR-кодом. Ни один конкурент сейчас так не делает: у конструкторов (Tilda, Taptop) QR нет вообще, а у QR-сервисов (MyQRcards) нет полноценного конструктора сайтов.
+      </p>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
+        <div style="background: white; border-radius: 10px; padding: 16px; border: 1px solid #bbf7d0;">
+          <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #16a34a; margin-bottom: 8px;">Динамические QR-коды</div>
+          <div style="font-size: 13px; color: var(--gray-600); line-height: 1.6;">Контент за QR меняется без перепечатки кода. Напечатал визитки — обновил сайт — QR ведёт на новую версию. Конкуренты (MyQRcards) дают это только для контактов, но не для полноценных сайтов.</div>
+        </div>
+        <div style="background: white; border-radius: 10px; padding: 16px; border: 1px solid #bbf7d0;">
+          <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #16a34a; margin-bottom: 8px;">QR-аналитика с воронкой</div>
+          <div style="font-size: 13px; color: var(--gray-600); line-height: 1.6;">Не просто «сколько сканирований», а полная воронка: откуда сканировали (геолокация) → какие страницы смотрели → нажали ли «связаться». Это превращает визитку в измеримый маркетинговый инструмент.</div>
+        </div>
+        <div style="background: white; border-radius: 10px; padding: 16px; border: 1px solid #bbf7d0;">
+          <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #16a34a; margin-bottom: 8px;">Множественные QR для одного сайта</div>
+          <div style="font-size: 13px; color: var(--gray-600); line-height: 1.6;">Разные QR-коды для разных каналов: один на визитке, другой на баннере, третий в презентации. Каждый с отдельной аналитикой — пользователь видит, какой канал приносит больше клиентов.</div>
+        </div>
+        <div style="background: white; border-radius: 10px; padding: 16px; border: 1px solid #bbf7d0;">
+          <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #16a34a; margin-bottom: 8px;">Кастомный дизайн QR</div>
+          <div style="font-size: 13px; color: var(--gray-600); line-height: 1.6;">QR-код в цветах бренда, с логотипом, в разных формах (круглый, с закруглёнными углами). У MyQRcards логотип ломает распознавание — это их слабость, которую можно закрыть качественной реализацией.</div>
+        </div>
+        <div style="background: white; border-radius: 10px; padding: 16px; border: 1px solid #bbf7d0;">
+          <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #16a34a; margin-bottom: 8px;">QR + NFC + Apple/Google Wallet</div>
+          <div style="font-size: 13px; color: var(--gray-600); line-height: 1.6;">Расширение QR до NFC-меток и карточек в Wallet. Пользователь на конференции: показал телефон → собеседник приложил свой → контакт сохранён + открылся сайт-портфолио. Мультиканальность усиливает QR-first подход.</div>
+        </div>
+        <div style="background: white; border-radius: 10px; padding: 16px; border: 1px solid #bbf7d0;">
+          <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #16a34a; margin-bottom: 8px;">Шаблоны «под профессию + QR-сценарий»</div>
+          <div style="font-size: 13px; color: var(--gray-600); line-height: 1.6;">Не просто шаблоны сайтов, а готовые связки: фотограф получает портфолио + QR для свадебного альбома клиента. Мастер маникюра — прайс + QR-стикер на зеркало в салоне. Репетитор — визитку + QR для родительского чата.</div>
+        </div>
+      </div>
+
+      <ul>
+        <li><strong>Офлайн-сценарии:</strong> QR на визитках, стикерах, баннерах, упаковке, бейджах — мост между офлайном и онлайном</li>
+        <li><strong>Мультиязычность для масштабирования</strong> — сайт автоматически переключает язык по геолокации сканирования QR</li>
+        <li><strong>API для бизнеса</strong> — массовая генерация QR для сотрудников компании, каждый со своей персональной страницей</li>
+      </ul>
+    </div>
+
+    <div class="rec-card threats">
+      <h3><span class="icon-circle">4</span> Угрозы</h3>
+      <ul>
+        <li><strong>Tilda</strong> может добавить QR-генератор (огромная база)</li>
+        <li><strong>MyQRcards</strong> — прямой конкурент с приложением и NFC</li>
+        <li><strong>Taplink</strong> — сильный бренд, низкие цены</li>
+        <li><strong>Canva</strong> — глобальный игрок, может расширить портфолио</li>
+        <li>За рубежом: Linktree, Carrd, About.me, HiHello</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Positioning recommendation -->
+  <h3 style="font-size: 18px; color: var(--dark); margin-bottom: 16px; font-weight: 800;">Рекомендации по позиционированию</h3>
+
+  <div class="positioning-block">
+    <h3>Российский рынок</h3>
+    <div class="tagline">QR-визитка, которая <em>продаёт за тебя</em>.<br>Создай профессиональный сайт за 10 минут и делись одним сканированием.</div>
+    <p><strong>ЦА:</strong> Фрилансеры, самозанятые, малый бизнес (мастера, репетиторы, фотографы, консультанты)<br>
+    <strong>Job:</strong> "Когда я встречаю потенциального клиента на мероприятии, хочу мгновенно показать своё портфолио через QR, чтобы он запомнил меня и связался позже"</p>
+  </div>
+
+
+
+  <div class="page-footer">
+    Отчёт подготовлен для <strong>PixelPort</strong> &middot; Март 2026 &middot; pxlport.ru
+  </div>
+</div>
+
+</body>
+</html>
