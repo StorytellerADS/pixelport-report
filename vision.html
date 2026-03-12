@@ -1,0 +1,1458 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PixelPort — Продуктовое видение и анализ рынка</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+  :root {
+    --primary: #9b82e8;
+    --primary-dark: #7a5fd6;
+    --primary-light: #c4b5f0;
+    --primary-bg: #f3f0fb;
+    --accent: #d4ff4c;
+    --accent-dark: #b8e030;
+    --dark: #1a1a2e;
+    --dark-soft: #2d2d44;
+    --gray-900: #111827;
+    --gray-700: #374151;
+    --gray-600: #4b5563;
+    --gray-500: #6b7280;
+    --gray-400: #9ca3af;
+    --gray-200: #e5e7eb;
+    --gray-100: #f3f4f6;
+    --gray-50: #f9fafb;
+    --white: #ffffff;
+    --danger: #ef4444;
+    --warning: #f59e0b;
+    --success: #10b981;
+    --info: #3b82f6;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    color: var(--gray-700);
+    background: var(--white);
+    line-height: 1.6;
+    font-size: 14px;
+  }
+
+  /* ===== COVER PAGE ===== */
+  .cover {
+    min-height: 100vh;
+    background: linear-gradient(135deg, var(--dark) 0%, #2a1f4e 40%, var(--primary-dark) 100%);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 60px 40px;
+    position: relative;
+    overflow: hidden;
+    page-break-after: always;
+  }
+
+  .cover::before {
+    content: '';
+    position: absolute;
+    top: -200px;
+    right: -200px;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(212, 255, 76, 0.15) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+
+  .cover::after {
+    content: '';
+    position: absolute;
+    bottom: -150px;
+    left: -150px;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(155, 130, 232, 0.2) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+
+  .cover-logo {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    margin-bottom: 60px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .cover-logo span {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    background: var(--accent);
+    border-radius: 2px;
+    margin-right: 12px;
+    vertical-align: middle;
+  }
+
+  .cover h1 {
+    font-size: 48px;
+    font-weight: 900;
+    color: var(--white);
+    line-height: 1.1;
+    margin-bottom: 24px;
+    position: relative;
+    z-index: 1;
+    max-width: 750px;
+  }
+
+  .cover h1 em {
+    font-style: normal;
+    color: var(--accent);
+  }
+
+  .cover-subtitle {
+    font-size: 20px;
+    color: var(--primary-light);
+    font-weight: 400;
+    margin-bottom: 80px;
+    position: relative;
+    z-index: 1;
+    max-width: 550px;
+  }
+
+  .cover-meta {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    gap: 40px;
+    color: var(--gray-400);
+    font-size: 13px;
+  }
+
+  .cover-meta div {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .cover-meta .label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--gray-500);
+  }
+
+  .cover-meta .value {
+    color: var(--gray-200);
+    font-weight: 500;
+  }
+
+  /* ===== TOC ===== */
+  .toc {
+    padding: 80px 60px;
+    max-width: 900px;
+    margin: 0 auto;
+    page-break-after: always;
+  }
+
+  .toc h2 {
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--dark);
+    margin-bottom: 40px;
+    padding-bottom: 16px;
+    border-bottom: 3px solid var(--accent);
+    display: inline-block;
+  }
+
+  .toc-list {
+    list-style: none;
+    counter-reset: toc;
+  }
+
+  .toc-list li {
+    counter-increment: toc;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--gray-200);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-size: 16px;
+    color: var(--gray-700);
+    font-weight: 500;
+  }
+
+  .toc-list li::before {
+    content: "0" counter(toc);
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--primary);
+    background: var(--primary-bg);
+    padding: 6px 12px;
+    border-radius: 8px;
+    min-width: 36px;
+    text-align: center;
+  }
+
+  /* ===== MAIN CONTENT ===== */
+  .page {
+    padding: 60px;
+    max-width: 900px;
+    margin: 0 auto;
+    page-break-after: always;
+  }
+
+  .section-number {
+    font-size: 12px;
+    font-weight: 800;
+    color: var(--primary);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .section-title {
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--dark);
+    margin-bottom: 32px;
+    line-height: 1.2;
+  }
+
+  .section-title::after {
+    content: '';
+    display: block;
+    width: 60px;
+    height: 4px;
+    background: linear-gradient(90deg, var(--primary), var(--accent));
+    border-radius: 2px;
+    margin-top: 12px;
+  }
+
+  .subsection-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--dark);
+    margin: 28px 0 16px;
+  }
+
+  /* Cards */
+  .card {
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    border-radius: 16px;
+    padding: 28px;
+    margin-bottom: 20px;
+    transition: box-shadow 0.2s;
+  }
+
+  .card:hover {
+    box-shadow: 0 4px 24px rgba(155, 130, 232, 0.1);
+  }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .card-icon {
+    width: 44px;
+    height: 44px;
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 800;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  .card-icon.accent {
+    background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+    color: var(--dark);
+  }
+
+  .card-icon.danger {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+  }
+
+  .card-icon.success {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+  }
+
+  .card-icon.warning {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: white;
+  }
+
+  .card-icon.info {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: white;
+  }
+
+  .card h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--dark);
+  }
+
+  .card h3 small {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--gray-500);
+    display: block;
+    margin-top: 2px;
+  }
+
+  .card p, .card li {
+    color: var(--gray-600);
+    font-size: 14px;
+    line-height: 1.7;
+  }
+
+  .card ul {
+    padding-left: 20px;
+    margin-top: 8px;
+  }
+
+  .card li {
+    margin-bottom: 4px;
+  }
+
+  /* Info Grid */
+  .info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .info-grid.cols-3 {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+
+  .info-grid.cols-4 {
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+  }
+
+  .info-item {
+    background: var(--gray-50);
+    border-radius: 12px;
+    padding: 20px;
+  }
+
+  .info-item.highlight {
+    background: var(--primary-bg);
+    border: 1px solid var(--primary-light);
+  }
+
+  .info-item.accent-highlight {
+    background: #f5ffe0;
+    border: 1px solid #d4ff4c80;
+  }
+
+  .info-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--gray-500);
+    margin-bottom: 6px;
+  }
+
+  .info-value {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--dark);
+    line-height: 1.5;
+  }
+
+  .info-value.large {
+    font-size: 22px;
+    font-weight: 800;
+  }
+
+  /* Tables */
+  .table-wrapper {
+    overflow-x: auto;
+    margin: 24px 0;
+    border-radius: 16px;
+    border: 1px solid var(--gray-200);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12.5px;
+  }
+
+  thead {
+    background: linear-gradient(135deg, var(--dark) 0%, var(--dark-soft) 100%);
+  }
+
+  thead th {
+    padding: 14px 12px;
+    color: var(--white);
+    font-weight: 600;
+    text-align: left;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  thead th:first-child { border-radius: 15px 0 0 0; }
+  thead th:last-child { border-radius: 0 15px 0 0; }
+
+  tbody td {
+    padding: 12px;
+    border-bottom: 1px solid var(--gray-100);
+    vertical-align: top;
+  }
+
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: var(--gray-50); }
+
+  td:first-child {
+    font-weight: 600;
+    color: var(--dark);
+  }
+
+  /* Tags / Badges */
+  .badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  .badge-critical { background: #fee2e2; color: #dc2626; }
+  .badge-high { background: #fef3c7; color: #d97706; }
+  .badge-medium { background: #dbeafe; color: #2563eb; }
+  .badge-low { background: #d1fae5; color: #059669; }
+  .badge-growth { background: #d1fae5; color: #059669; }
+  .badge-decline { background: #fee2e2; color: #dc2626; }
+
+  /* Callout */
+  .callout {
+    background: linear-gradient(135deg, var(--primary-bg), #ede9fe);
+    border-left: 4px solid var(--primary);
+    border-radius: 0 12px 12px 0;
+    padding: 20px 24px;
+    margin: 24px 0;
+  }
+
+  .callout.accent {
+    background: linear-gradient(135deg, #f5ffe0, #ecfccb);
+    border-left-color: var(--accent-dark);
+  }
+
+  .callout.warning {
+    background: linear-gradient(135deg, #fff7ed, #fef3c7);
+    border-left-color: var(--warning);
+  }
+
+  .callout.danger {
+    background: linear-gradient(135deg, #fef2f2, #fee2e2);
+    border-left-color: var(--danger);
+  }
+
+  .callout.info {
+    background: linear-gradient(135deg, #eff6ff, #dbeafe);
+    border-left-color: var(--info);
+  }
+
+  .callout-title {
+    font-weight: 700;
+    color: var(--dark);
+    margin-bottom: 6px;
+    font-size: 14px;
+  }
+
+  .callout p {
+    font-size: 14px;
+    color: var(--gray-600);
+  }
+
+  /* Stats row */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin: 24px 0;
+  }
+
+  .stats-row.cols-3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .stat-card {
+    text-align: center;
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    border-radius: 16px;
+    padding: 24px 16px;
+  }
+
+  .stat-number {
+    font-size: 28px;
+    font-weight: 900;
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .stat-number.accent {
+    background: linear-gradient(135deg, var(--accent-dark), #8cb820);
+    -webkit-background-clip: text;
+    background-clip: text;
+  }
+
+  .stat-label {
+    font-size: 11px;
+    color: var(--gray-500);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 4px;
+    font-weight: 600;
+  }
+
+  /* Positioning block */
+  .positioning-block {
+    background: linear-gradient(135deg, var(--dark) 0%, #2a1f4e 100%);
+    border-radius: 20px;
+    padding: 36px;
+    margin: 24px 0;
+    color: white;
+  }
+
+  .positioning-block h3 {
+    color: var(--accent);
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 12px;
+  }
+
+  .positioning-block .tagline {
+    font-size: 24px;
+    font-weight: 800;
+    line-height: 1.3;
+    margin-bottom: 16px;
+    color: var(--white);
+  }
+
+  .positioning-block .tagline em {
+    font-style: normal;
+    color: var(--accent);
+  }
+
+  .positioning-block p {
+    color: var(--gray-400);
+    font-size: 14px;
+    line-height: 1.7;
+  }
+
+  /* Rec cards */
+  .rec-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 16px 0;
+  }
+
+  .rec-card {
+    border-radius: 16px;
+    padding: 24px;
+    page-break-inside: avoid;
+  }
+
+  .rec-card.opportunities {
+    background: linear-gradient(135deg, #f0fdf4, #ecfccb);
+    border: 1px solid #bbf7d0;
+  }
+
+  .rec-card.threats {
+    background: linear-gradient(135deg, #fef2f2, #fff7ed);
+    border: 1px solid #fecaca;
+  }
+
+  .rec-card.uncovered {
+    background: linear-gradient(135deg, var(--primary-bg), #ede9fe);
+    border: 1px solid var(--primary-light);
+  }
+
+  .rec-card.weakness {
+    background: linear-gradient(135deg, #fff7ed, #fef3c7);
+    border: 1px solid #fed7aa;
+  }
+
+  .rec-card h3 {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--dark);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .rec-card .icon-circle {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+
+  .rec-card.opportunities .icon-circle { background: #dcfce7; }
+  .rec-card.threats .icon-circle { background: #fee2e2; }
+  .rec-card.uncovered .icon-circle { background: #e9e5f5; }
+  .rec-card.weakness .icon-circle { background: #fed7aa; }
+
+  .rec-card ul {
+    list-style: none;
+    padding: 0;
+  }
+
+  .rec-card li {
+    font-size: 13px;
+    color: var(--gray-600);
+    padding: 5px 0;
+    padding-left: 14px;
+    position: relative;
+    line-height: 1.5;
+  }
+
+  .rec-card li::before {
+    content: '>';
+    position: absolute;
+    left: 0;
+    color: var(--primary);
+    font-weight: 700;
+  }
+
+  /* Roadmap */
+  .roadmap-item {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 20px;
+    page-break-inside: avoid;
+  }
+
+  .roadmap-marker {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex-shrink: 0;
+  }
+
+  .roadmap-dot {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 800;
+    font-size: 14px;
+  }
+
+  .roadmap-dot.accent {
+    background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+    color: var(--dark);
+  }
+
+  .roadmap-line {
+    width: 2px;
+    flex: 1;
+    background: var(--gray-200);
+    margin-top: 4px;
+  }
+
+  .roadmap-content {
+    flex: 1;
+    background: var(--gray-50);
+    border-radius: 12px;
+    padding: 20px;
+  }
+
+  .roadmap-content h4 {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--dark);
+    margin-bottom: 4px;
+  }
+
+  .roadmap-content .timeline {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--primary);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+  }
+
+  .roadmap-content ul {
+    list-style: none;
+    padding: 0;
+  }
+
+  .roadmap-content li {
+    font-size: 13px;
+    color: var(--gray-600);
+    padding: 3px 0;
+    padding-left: 14px;
+    position: relative;
+  }
+
+  .roadmap-content li::before {
+    content: '>';
+    position: absolute;
+    left: 0;
+    color: var(--primary);
+    font-weight: 700;
+  }
+
+  /* Divider */
+  .divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gray-200), transparent);
+    margin: 32px 0;
+  }
+
+  /* Footer */
+  .page-footer {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--gray-400);
+    font-size: 11px;
+    border-top: 1px solid var(--gray-200);
+    margin-top: 40px;
+  }
+
+  .page-footer strong {
+    color: var(--primary);
+  }
+
+  /* Helpers */
+  .text-sm { font-size: 13px; }
+  .text-xs { font-size: 11px; }
+  .text-muted { color: var(--gray-500); }
+  .text-primary { color: var(--primary); }
+  .mt-16 { margin-top: 16px; }
+  .mt-24 { margin-top: 24px; }
+  .mb-16 { margin-bottom: 16px; }
+  .mb-24 { margin-bottom: 24px; }
+
+  /* Print */
+  @media print {
+    body { font-size: 11px; }
+    .cover { min-height: 100vh; }
+    .page { padding: 40px 50px; }
+    .card:hover { box-shadow: none; }
+    .rec-card, .roadmap-item { break-inside: avoid; }
+    @page { size: A4; margin: 0; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===================== COVER ===================== -->
+<div class="cover">
+  <div class="cover-logo"><span></span>PixelPort</div>
+  <h1>Продуктовое <em>видение</em> и анализ рынка</h1>
+  <p class="cover-subtitle">Целевое состояние продукта, гипотезы роста, UX-аудит и исследование трендов</p>
+  <div class="cover-meta">
+    <div>
+      <span class="label">Продукт</span>
+      <span class="value">PixelPort (pxlport.ru)</span>
+    </div>
+    <div>
+      <span class="label">Рынок</span>
+      <span class="value">Россия, B2C</span>
+    </div>
+    <div>
+      <span class="label">Дата</span>
+      <span class="value">Март 2026</span>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== TOC ===================== -->
+<div class="toc">
+  <h2>Содержание</h2>
+  <ul class="toc-list">
+    <li>Продукт сегодня и целевое состояние</li>
+    <li>UX-аудит личного кабинета: проблемы и сильные стороны</li>
+    <li>Размер рынка и ключевые игроки</li>
+    <li>Тренды: технологии, потребители, регулирование</li>
+    <li>Гипотезы роста и дорожная карта</li>
+  </ul>
+</div>
+
+<!-- ===================== SECTION 1 ===================== -->
+<div class="page">
+  <div class="section-number">Раздел 01</div>
+  <div class="section-title">Продукт сегодня и целевое состояние</div>
+
+  <div class="info-grid">
+    <div class="info-item highlight">
+      <div class="info-label">Продукт</div>
+      <div class="info-value">Конструктор сайтов-визиток со встроенной генерацией QR-кодов</div>
+    </div>
+    <div class="info-item highlight">
+      <div class="info-label">Уникальность</div>
+      <div class="info-value">Единственный продукт на рынке, объединяющий конструктор сайтов и QR как единое ядро</div>
+    </div>
+    <div class="info-item">
+      <div class="info-label">Модель</div>
+      <div class="info-value">Бесплатный / Базовый 149 ₽ / Премиум 299 ₽</div>
+    </div>
+    <div class="info-item">
+      <div class="info-label">Аудитория</div>
+      <div class="info-value">Самозанятые, фрилансеры, малый бизнес (Россия)</div>
+    </div>
+  </div>
+
+  <div class="callout danger">
+    <div class="callout-title">Главная проблема</div>
+    <p>Позиционирование размыто: непонятно, это конструктор портфолио, визиток или лендингов. Месседж «создай сайт за 10 минут» не отличает PixelPort от десятков конкурентов. Уникальность QR-кодов теряется.</p>
+  </div>
+
+  <!-- Target State -->
+  <div class="positioning-block">
+    <h3>Целевое видение</h3>
+    <div class="tagline">PixelPort = <em>QR-платформа</em> для профессионалов, которая превращает <em>офлайн-контакт</em> в онлайн-клиента</div>
+    <p>Каждый сценарий начинается с QR-кода и заканчивается измеримым результатом: контакт, заявка, просмотр портфолио. Целевой пользователь &mdash; самозанятый или фрилансер, который регулярно встречается с потенциальными клиентами офлайн и хочет мгновенно «показать себя» через QR.</p>
+  </div>
+
+  <div class="callout accent">
+    <div class="callout-title">Целевой сценарий использования</div>
+    <p>«Когда я встречаю потенциального клиента на мероприятии, я хочу мгновенно показать своё портфолио через QR-код, чтобы он запомнил меня и связался позже &mdash; а я видел, кто заинтересовался.»</p>
+  </div>
+
+  <div class="subsection-title">Ключевые проблемы текущего состояния</div>
+
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Проблема</th>
+          <th>Влияние</th>
+          <th>Категория</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1</td>
+          <td>Размытое позиционирование &mdash; «конструктор всего и ни для кого»</td>
+          <td>Низкая конверсия в регистрацию</td>
+          <td><span class="badge badge-critical">Критично</span></td>
+        </tr>
+        <tr>
+          <td>2</td>
+          <td>Нет онбординга после регистрации</td>
+          <td>Пользователь уходит, не создав проект</td>
+          <td><span class="badge badge-critical">Критично</span></td>
+        </tr>
+        <tr>
+          <td>3</td>
+          <td>Пустые экраны не обучают и не мотивируют</td>
+          <td>Потеря точек конверсии</td>
+          <td><span class="badge badge-critical">Критично</span></td>
+        </tr>
+        <tr>
+          <td>4</td>
+          <td>Сайты и QR-коды разорваны в интерфейсе</td>
+          <td>Уникальная ценность продукта не видна</td>
+          <td><span class="badge badge-high">Важно</span></td>
+        </tr>
+        <tr>
+          <td>5</td>
+          <td>Навязчивый виджет тарифа давит, но не объясняет ценность</td>
+          <td>Раздражение вместо конверсии</td>
+          <td><span class="badge badge-high">Важно</span></td>
+        </tr>
+        <tr>
+          <td>6</td>
+          <td>Нет аналитики на главной &mdash; нет причины возвращаться</td>
+          <td>Слабое удержание</td>
+          <td><span class="badge badge-high">Важно</span></td>
+        </tr>
+        <tr>
+          <td>7</td>
+          <td>Страница «Сервисы» &mdash; тупик без контента</td>
+          <td>Мёртвый экран</td>
+          <td><span class="badge badge-medium">Средне</span></td>
+        </tr>
+        <tr>
+          <td>8</td>
+          <td>Настройки = 2 переключателя уведомлений</td>
+          <td>Ощущение незавершённости</td>
+          <td><span class="badge badge-medium">Средне</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ===================== SECTION 2 ===================== -->
+<div class="page">
+  <div class="section-number">Раздел 02</div>
+  <div class="section-title">UX-аудит личного кабинета</div>
+
+  <div class="subsection-title">5 главных проблем</div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon danger">1</div>
+      <h3>Отсутствие онбординга<small>Влияет на активацию новых пользователей</small></h3>
+    </div>
+    <p>После регистрации &mdash; пустой экран с баннером тарифа и карточкой «+». Нет приветственного сценария, чеклиста первых шагов или подсказок. Пользователь не понимает, с чего начать и в чём ценность продукта.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon danger">2</div>
+      <h3>Пустые экраны не работают на конверсию<small>«Мои сайты», «Мои QR-коды», «Сообщения»</small></h3>
+    </div>
+    <p>Вместо примеров, кейсов и мотивирующих призывов &mdash; голая иконка «+» и текст «Здесь пока ничего нет...». Каждый пустой экран &mdash; упущенная точка, где можно объяснить ценность и подтолкнуть к действию.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon danger">3</div>
+      <h3>Сайты и QR-коды живут отдельно<small>Уникальная ценность продукта не очевидна</small></h3>
+    </div>
+    <p>Вкладки «Сайт» и «QR-код» ведут в разные разделы. Нет единого сценария: создай визитку &rarr; получи QR &rarr; размести на сайте. Связка, ради которой продукт существует, в интерфейсе не прослеживается.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon warning">4</div>
+      <h3>Виджет тарифа раздражает, а не конвертирует<small>Присутствует на каждом экране</small></h3>
+    </div>
+    <p>Жёлтый блок «Ваш тарифный план: Бесплатный / Сменить тариф» закреплён внизу на всех страницах. Не объясняет, что даст платный тариф. Давление без ценности = негативная реакция.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon warning">5</div>
+      <h3>Страница «Сервисы» &mdash; тупик<small>Экран без контента</small></h3>
+    </div>
+    <p>Показывает «Дополнительные сервисы» с текстом про лицензионный ключ и всё. Нет каталога, описания, примеров. Для бесплатного пользователя &mdash; бесполезный экран.</p>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="subsection-title">5 сильных сторон</div>
+
+  <div class="rec-grid">
+    <div class="rec-card opportunities">
+      <h3><div class="icon-circle">1</div> Чистая навигация</h3>
+      <ul>
+        <li>6 пунктов в сайдбаре с иконками</li>
+        <li>Текущий раздел подсвечен</li>
+        <li>Нет перегрузки, легко ориентироваться</li>
+      </ul>
+    </div>
+    <div class="rec-card opportunities">
+      <h3><div class="icon-circle">2</div> Выбор типов QR</h3>
+      <ul>
+        <li>9 вариантов в понятной сетке 3x3</li>
+        <li>Иконки считываются без текста</li>
+        <li>Визуально чисто, без перегрузки</li>
+      </ul>
+    </div>
+    <div class="rec-card opportunities">
+      <h3><div class="icon-circle">3</div> Предпросмотр QR в реальном времени</h3>
+      <ul>
+        <li>Справа в редакторе &mdash; актуальный QR</li>
+        <li>Скачивание: формат + размер</li>
+        <li>Снижает тревогу «а как это будет?»</li>
+      </ul>
+    </div>
+    <div class="rec-card opportunities">
+      <h3><div class="icon-circle">4</div> Богатая кастомизация дизайна</h3>
+      <ul>
+        <li>Шаблоны, формы, цвета, логотип, параметры</li>
+        <li>Визуальная галерея с превью</li>
+        <li>Мощная настройка при простом интерфейсе</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="rec-card opportunities" style="margin-top: 0;">
+    <h3><div class="icon-circle">5</div> Прозрачная страница тарифов</h3>
+    <ul>
+      <li>Три тарифа, чёткое сравнение функций, понятные цены, переключатель «месяц / год», раздел «Вопросы и ответы»</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ===================== SECTION 3 ===================== -->
+<div class="page">
+  <div class="section-number">Раздел 03</div>
+  <div class="section-title">Размер рынка и ключевые игроки</div>
+
+  <div class="subsection-title">Глобальные рынки</div>
+
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-number">$15.2 млрд</div>
+      <div class="stat-label">Рынок QR (2026)</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number">16.8%</div>
+      <div class="stat-label">Рост QR в год</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number">$239 млн</div>
+      <div class="stat-label">Цифровые визитки</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number">12.2%</div>
+      <div class="stat-label">Рост визиток в год</div>
+    </div>
+  </div>
+
+  <div class="stats-row cols-3">
+    <div class="stat-card">
+      <div class="stat-number">$12.8 млрд</div>
+      <div class="stat-label">Конструкторы сайтов (2025)</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number">12%</div>
+      <div class="stat-label">Рост конструкторов</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number">$37.2 млрд</div>
+      <div class="stat-label">Весь no-code (2026)</div>
+    </div>
+  </div>
+
+  <div class="subsection-title">Российский рынок</div>
+
+  <div class="info-grid">
+    <div class="info-item accent-highlight">
+      <div class="info-label">Самозанятые в России</div>
+      <div class="info-value large">15.3 млн</div>
+      <div class="text-xs text-muted mt-16">Рост +25% за 2025. Доходы &gt; 3 трлн ₽. Москва: 2.25 млн, МО: 1.08 млн, СПб: 1 млн</div>
+    </div>
+    <div class="info-item accent-highlight">
+      <div class="info-label">Tilda &mdash; ориентир по выручке</div>
+      <div class="info-value large">2.4 млрд ₽</div>
+      <div class="text-xs text-muted mt-16">Чистая прибыль 1.9 млрд ₽ (2024). Оценка: 38-76 млрд ₽</div>
+    </div>
+  </div>
+
+  <div class="info-grid cols-3">
+    <div class="info-item highlight">
+      <div class="info-label">Полный рынок (TAM)</div>
+      <div class="info-value">$15.2 млрд (QR) + $12.8 млрд (конструкторы)</div>
+    </div>
+    <div class="info-item highlight">
+      <div class="info-label">Доступный рынок (SAM)</div>
+      <div class="info-value">~5.4 млрд ₽/год (3 млн самозанятых в РФ, нуждающихся в онлайн-присутствии)</div>
+    </div>
+    <div class="info-item highlight">
+      <div class="info-label">Реалистичный охват (SOM)</div>
+      <div class="info-value">27-54 млн ₽/год (15-30 тыс. платящих за 2-3 года)</div>
+    </div>
+  </div>
+
+  <div class="subsection-title">Ключевые игроки</div>
+
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>Компания</th>
+          <th>Позиция</th>
+          <th>Цена от</th>
+          <th>Сила</th>
+          <th>Слабость</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Tilda</td>
+          <td>Лидер рынка</td>
+          <td>750 ₽/мес</td>
+          <td>Экосистема, шаблоны, бренд</td>
+          <td>Дорого для визиток, нет QR</td>
+        </tr>
+        <tr>
+          <td>Taplink</td>
+          <td>Лидер мультиссылок</td>
+          <td>90 ₽/мес</td>
+          <td>Низкая цена, Instagram-фокус</td>
+          <td>Слабая поддержка, узкий функционал</td>
+        </tr>
+        <tr>
+          <td>MyQRcards</td>
+          <td>Прямой конкурент</td>
+          <td>Бесплатно</td>
+          <td>QR + NFC + приложение</td>
+          <td>Нет конструктора сайтов</td>
+        </tr>
+        <tr>
+          <td>Portfolios.ru</td>
+          <td>Нишевый</td>
+          <td>120 ₽/мес</td>
+          <td>14 лет на рынке</td>
+          <td>Устаревший дизайн</td>
+        </tr>
+        <tr>
+          <td>Wfolio</td>
+          <td>Для фотографов</td>
+          <td>299 ₽/мес</td>
+          <td>Хранилище, отзывчивая поддержка</td>
+          <td>Только фотографы</td>
+        </tr>
+        <tr>
+          <td>Taptop</td>
+          <td>Растущий</td>
+          <td>Бесплатно</td>
+          <td>Чистый код, партнёры (Альфа, ВК)</td>
+          <td>Молодой продукт</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout accent">
+    <div class="callout-title">Ключевой вывод</div>
+    <p>PixelPort &mdash; единственный продукт, объединяющий конструктор сайтов и QR-коды как ядро. MyQRcards даёт QR, но без сайтов. Tilda даёт сайты, но без QR. Это окно возможностей, которое нужно занять до того, как крупные игроки среагируют.</p>
+  </div>
+
+  <div class="callout warning">
+    <div class="callout-title">Инвестиционная активность</div>
+    <p>Framer (глобальный конструктор) привлёк $100 млн при оценке $2 млрд (август 2025). В России крупных раундов в нише не было &mdash; Tilda прибыльна и не привлекает внешние инвестиции. Потенциальная угроза: Яндекс, VK или Сбер могут запустить собственный конструктор визиток.</p>
+  </div>
+</div>
+
+<!-- ===================== SECTION 4 ===================== -->
+<div class="page">
+  <div class="section-number">Раздел 04</div>
+  <div class="section-title">Тренды: технологии, потребители, регулирование</div>
+
+  <div class="subsection-title">Технологические тренды</div>
+
+  <div class="rec-grid">
+    <div class="rec-card uncovered">
+      <h3><div class="icon-circle">AI</div> ИИ-генерация контента</h3>
+      <ul>
+        <li>ИИ создаёт сайт по описанию профессии за секунды</li>
+        <li>Персонализация содержимого QR под контекст (геолокация, время)</li>
+        <li>Рекомендации по оптимизации размещения</li>
+        <li><strong>Для PixelPort:</strong> «Опиши себя &rarr; получи сайт + QR» &mdash; мощный отличительный признак</li>
+      </ul>
+    </div>
+    <div class="rec-card uncovered">
+      <h3><div class="icon-circle">QR</div> Динамические QR-коды</h3>
+      <ul>
+        <li>64% рынка &mdash; динамические коды, рост 18.9% в год</li>
+        <li>Содержимое меняется без перепечатки кода</li>
+        <li>Бизнес использует QR как постоянную инфраструктуру</li>
+        <li><strong>Для PixelPort:</strong> обязательная функция для платных тарифов</li>
+      </ul>
+    </div>
+    <div class="rec-card uncovered">
+      <h3><div class="icon-circle">NFC</div> Сближение NFC + QR + Wallet</h3>
+      <ul>
+        <li>NFC-визитки растут на 9.7% в год</li>
+        <li>Комбинация NFC + QR + Apple/Google Wallet = стандарт нетворкинга</li>
+        <li><strong>Для PixelPort:</strong> NFC как премиум-функция или физический товар</li>
+      </ul>
+    </div>
+    <div class="rec-card weakness">
+      <h3><div class="icon-circle">!</div> Что уходит</h3>
+      <ul>
+        <li>Статические QR-коды без аналитики</li>
+        <li>Конструкторы без ИИ-помощника</li>
+        <li>Настольные редакторы без мобильной версии</li>
+        <li>Бумажные визитки как основной инструмент</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="subsection-title">Потребительские тренды</div>
+
+  <div class="info-grid">
+    <div class="info-item">
+      <div class="info-label">«Сделай за меня»</div>
+      <div class="info-value text-sm">ИИ должен сгенерировать первую версию сайта, пользователь только правит. Ожидание мгновенного результата: от регистрации до готового QR &lt; 3 минут.</div>
+    </div>
+    <div class="info-item">
+      <div class="info-label">Измеримость</div>
+      <div class="info-value text-sm">«Хочу видеть, кто сканировал мой QR и что потом делал». Аналитика &mdash; не бонус, а ожидание. Это главный рычаг перевода с бесплатного на платный тариф.</div>
+    </div>
+    <div class="info-item">
+      <div class="info-label">Многоканальность</div>
+      <div class="info-value text-sm">Один проект = QR + ссылка + NFC + Apple Wallet + виджет для соцсетей. Пользователь не хочет собирать решение из нескольких сервисов.</div>
+    </div>
+    <div class="info-item">
+      <div class="info-label">Личный бренд</div>
+      <div class="info-value text-sm">Самозанятые инвестируют в самопрезентацию. Запрос: «выглядеть профессионально» при минимальных затратах. Шаблоны под конкретную профессию.</div>
+    </div>
+  </div>
+
+  <div class="subsection-title">Базовые требования рынка (без чего нельзя выйти)</div>
+  <div class="callout info">
+    <p>Бесплатный тариф &bull; Адаптивная вёрстка &bull; SSL-сертификат &bull; Кастомизация дизайна QR &bull; Скачивание в PNG/SVG &bull; Базовая аналитика сканирований &bull; Оплата в рублях с российских карт</p>
+  </div>
+
+  <div class="subsection-title">Регулирование (Россия, 2025-2026)</div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon info">!</div>
+      <h3>Что важно для PixelPort</h3>
+    </div>
+    <ul>
+      <li><strong>QR для ИП и самозанятых (2026):</strong> обязательный QR-код, заменяющий кассовый аппарат. QR становится привычным для всех &mdash; это расширяет рынок.</li>
+      <li><strong>Маркировка «Честный ЗНАК»:</strong> расширение списка товаров с DataMatrix-кодами. QR входит в повседневную жизнь потребителей.</li>
+      <li><strong>ФЗ-152 (персональные данные):</strong> ужесточение требований. MyQRcards уже имеет сертификат &mdash; PixelPort необходимо обеспечить соответствие.</li>
+      <li><strong>Социальные гарантии для самозанятых:</strong> легализация сегмента &mdash; больше самозанятых = больше потенциальных пользователей.</li>
+    </ul>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="subsection-title">Прогноз на 2-3 года</div>
+  <div class="rec-grid">
+    <div class="rec-card opportunities">
+      <h3><div class="icon-circle">+</div> Будет расти</h3>
+      <ul>
+        <li>ИИ-генерация сайтов и контента</li>
+        <li>Динамические QR и QR-аналитика (+18.9% в год)</li>
+        <li>Рынок цифровых визиток (удвоится к 2033)</li>
+        <li>Число самозанятых в РФ (16-17 млн к 2027)</li>
+        <li>Сближение NFC + QR + Wallet</li>
+      </ul>
+    </div>
+    <div class="rec-card threats">
+      <h3><div class="icon-circle">&minus;</div> Будет терять актуальность</h3>
+      <ul>
+        <li>Статические QR-коды без аналитики</li>
+        <li>Универсальные конструкторы «для всего»</li>
+        <li>Ручной ввод контента (заменит ИИ)</li>
+        <li>Только настольные редакторы</li>
+        <li>Бумажные визитки как единственный инструмент</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="rec-grid">
+    <div class="rec-card uncovered">
+      <h3><div class="icon-circle">!</div> Окна возможностей</h3>
+      <ul>
+        <li>«QR-визитка для самозанятых» &mdash; ниша свободна</li>
+        <li>ИИ-генерация сайта по профессии за 30 секунд</li>
+        <li>QR-аналитика как функция удержания</li>
+        <li>B2B-тариф: корпоративные визитки через API</li>
+      </ul>
+    </div>
+    <div class="rec-card threats">
+      <h3><div class="icon-circle">!</div> Риски</h3>
+      <ul>
+        <li>Tilda добавит QR-генератор</li>
+        <li>Яндекс / VK / Сбер запустят конструктор визиток</li>
+        <li>Canva расширит портфолио + QR</li>
+        <li>Ужесточение ФЗ-152 увеличит стоимость соответствия</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 5 ===================== -->
+<div class="page">
+  <div class="section-number">Раздел 05</div>
+  <div class="section-title">Гипотезы роста и дорожная карта</div>
+
+  <div class="subsection-title">Гипотезы</div>
+
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>Этап</th>
+          <th>Гипотеза</th>
+          <th>Метрика</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Привлечение</td>
+          <td>Сузить позиционирование до «QR-визитка для профессионалов за 2 минуты» &rarr; конверсия лендинга +20%</td>
+          <td>Конверсия: лендинг &rarr; регистрация</td>
+        </tr>
+        <tr>
+          <td>Привлечение</td>
+          <td>Интерактивный демо-QR на лендинге (сканируешь &rarr; видишь пример портфолио) &rarr; +15%</td>
+          <td>Конверсия: лендинг &rarr; регистрация</td>
+        </tr>
+        <tr>
+          <td>Активация</td>
+          <td>Онбординг «Выбери профессию &rarr; заполни &rarr; получи сайт + QR» &rarr; 60%+ создадут проект в первой сессии</td>
+          <td>% создавших проект в 1-ю сессию</td>
+        </tr>
+        <tr>
+          <td>Активация</td>
+          <td>Единый поток создания (сайт + QR одновременно) снизит время до ценности с 10 до 2 минут</td>
+          <td>Время до первого скачанного QR</td>
+        </tr>
+        <tr>
+          <td>Монетизация</td>
+          <td>Аналитика сканирований на бесплатном тарифе с размытием деталей за платным ограничением &rarr; конверсия в платный +25%</td>
+          <td>Конверсия: бесплатный &rarr; платный</td>
+        </tr>
+        <tr>
+          <td>Монетизация</td>
+          <td>Контекстные подсказки вместо навязчивого виджета &mdash; не уронят конверсию, но поднимут удовлетворённость</td>
+          <td>Конверсия + оценка удовлетворённости</td>
+        </tr>
+        <tr>
+          <td>Удержание</td>
+          <td>Еженедельный дайджест «Ваш QR сканировали X раз» увеличит частоту возвратов</td>
+          <td>Возвраты за 7 / 30 дней</td>
+        </tr>
+        <tr>
+          <td>Удержание</td>
+          <td>Панель аналитики на главной &rarr; удержание за 30 дней +20%</td>
+          <td>Удержание D30</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="subsection-title">Дорожная карта по приоритетам</div>
+
+  <div class="roadmap-item">
+    <div class="roadmap-marker">
+      <div class="roadmap-dot accent">1</div>
+      <div class="roadmap-line"></div>
+    </div>
+    <div class="roadmap-content">
+      <div class="timeline">Спринты 1-2 &bull; Ближайший месяц</div>
+      <h4>Активация: довести до «ага-момента» за первую сессию</h4>
+      <ul>
+        <li>Онбординг-визард после регистрации</li>
+        <li>Единый поток «Создать визитку» = сайт + QR одновременно</li>
+        <li>Переработка пустых экранов с примерами и призывами к действию</li>
+        <li>5-7 шаблонов по профессиям (фотограф, дизайнер, репетитор, мастер...)</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="roadmap-item">
+    <div class="roadmap-marker">
+      <div class="roadmap-dot">2</div>
+      <div class="roadmap-line"></div>
+    </div>
+    <div class="roadmap-content">
+      <div class="timeline">Спринты 3-4 &bull; Месяц 2</div>
+      <h4>Позиционирование + монетизация</h4>
+      <ul>
+        <li>Новый лендинг: «QR-визитка профессионала за 2 минуты»</li>
+        <li>Аналитика сканирований на главной + ограничение деталей для бесплатного тарифа</li>
+        <li>Контекстные подсказки вместо навязчивого виджета</li>
+        <li>Динамические QR-коды (Базовый/Премиум)</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="roadmap-item">
+    <div class="roadmap-marker">
+      <div class="roadmap-dot">3</div>
+      <div class="roadmap-line"></div>
+    </div>
+    <div class="roadmap-content">
+      <div class="timeline">Спринты 5-8 &bull; Месяцы 3-4</div>
+      <h4>Рост: расширение функционала</h4>
+      <ul>
+        <li>ИИ-генерация сайта по описанию профессии</li>
+        <li>Мобильное приложение (базовая версия)</li>
+        <li>NFC-теги (Премиум)</li>
+        <li>B2B-тариф: корпоративные визитки</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="roadmap-item">
+    <div class="roadmap-marker">
+      <div class="roadmap-dot">4</div>
+    </div>
+    <div class="roadmap-content">
+      <div class="timeline">Спринт 9+ &bull; Месяц 5+</div>
+      <h4>Экосистема</h4>
+      <ul>
+        <li>API для массовой генерации QR</li>
+        <li>Интеграция с Apple/Google Wallet</li>
+        <li>Многоязычные визитки</li>
+        <li>Интеграции (CRM, мессенджеры)</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="subsection-title">Ключевая метрика продукта</div>
+
+  <div class="positioning-block">
+    <h3>Главная метрика</h3>
+    <div class="tagline">Количество QR-кодов, которые были <em>скачаны</em> и <em>сканированы</em> хотя бы 1 раз</div>
+    <p>Эта метрика отражает реальное использование продукта: создание + распространение + получение ценности. Если QR скачан, но не сканирован &mdash; пользователь не получил результат.</p>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-number">&gt;5%</div>
+      <div class="stat-label">Лендинг &rarr; регистрация</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number">&gt;60%</div>
+      <div class="stat-label">Проект в 1-ю сессию</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number">&lt;3 мин</div>
+      <div class="stat-label">До первой ценности</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number">&gt;3%</div>
+      <div class="stat-label">Бесплатный &rarr; платный</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ===================== FOOTER ===================== -->
+<div class="page-footer">
+  <strong>PixelPort</strong> &mdash; Продуктовое видение и анализ рынка &bull; Март 2026<br>
+  <span class="text-xs text-muted">Источники: Mordor Intelligence, Verified Market Research, Business Research Insights, Research Nester, TAdviser, CNews, QR Code Chimp, Supercode, TechCrunch</span>
+</div>
+
+</body>
+</html>
